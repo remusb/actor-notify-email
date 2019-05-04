@@ -26,8 +26,7 @@ Apify.main(async () => {
             const entry = await ter.getValue(key);
 
             if (('notified' in entry) && entry.notified && process.env.INCLUDE_NOTIFIED != "1") {
-                console.log(`Skipping entry: ${JSON.stringify(entry)}`);
-                break;
+                continue;
             }
             if (!('title' in entry)) {
                 console.log(`Ignoring entry: ${JSON.stringify(entry)}`);

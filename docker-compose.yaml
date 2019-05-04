@@ -1,0 +1,19 @@
+version: '2.1'
+services:
+    actor-notify-email:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        environment:
+            - APIFY_LOCAL_STORAGE_DIR=/storage
+            - APIFY_MEMORY_MBYTES=2048
+            - APIFY_HEADLESS=1
+            - BATCH_SIZE=100
+            - INCLUDE_NOTIFIED=0
+            - DELETE_INVALID=1
+            - DEST=remus.bunduc@gmail.com
+            - GMAIL_USER=XXX
+            - GMAIL_PASSWORD=XXX
+        volumes:
+            - ./../actor-scraper/storage/key_value_stores:/storage/key_value_stores
+            - ./../actor-scraper/storage/tpl:/template

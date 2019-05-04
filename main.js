@@ -36,9 +36,10 @@ Apify.main(async () => {
                 continue;
             }
             if ('CONTAINS' in process.env) {
-                if (entry.title.includes(process.env.CONTAINS) ||
-                        ('location' in entry && entry.location.includes(process.env.CONTAINS)) ||
-                        ('detail' in entry && entry.detail.includes(process.env.CONTAINS))) {
+                const re = new RegExp(process.env, "ig");
+                if (entry.title.match(re) ||
+                        ('location' in entry && entry.location.match(re)) ||
+                        ('detail' in entry && entry.detail.match(re))) {
                     console.log(`Found match entry: ${entry.id}`);
                 } else {
                     continue;

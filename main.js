@@ -26,6 +26,7 @@ Apify.main(async () => {
             const entry = await ter.getValue(key);
 
             if (('notified' in entry) && entry.notified && process.env.INCLUDE_NOTIFIED != "1") {
+                console.log(`Skipping entry: ${JSON.stringify(entry)}`);
                 break;
             }
             if (!('title' in entry)) {
@@ -51,9 +52,9 @@ Apify.main(async () => {
                     continue;
                 }
             }
-            if ('TYPE' in process.env) {
-                if ((process.env.TYPE == 'executare' && entry.executare) ||
-                        (process.env.TYPE == 'vanzare' && !entry.executare)) {
+            if ('AD_TYPE' in process.env) {
+                if ((process.env.AD_TYPE == 'executare' && entry.executare) ||
+                        (process.env.AD_TYPE == 'vanzare' && !entry.executare)) {
                     console.log(`Found match entry: ${entry.id}`);
                 } else {
                     continue;
@@ -98,8 +99,8 @@ Apify.main(async () => {
             if ('SECTOR' in process.env) {
                 emailTitle = `Status Terenuri / Sector ${process.env.SECTOR}: ${cnt}`;
             }
-            if ('TYPE' in process.env) {
-                emailTitle = `Status Terenuri / ${process.env.TYPE.charAt(0).toUpperCase() + process.env.TYPE.slice(1)}: ${cnt}`;
+            if ('AD_TYPE' in process.env) {
+                emailTitle = `Status Terenuri / ${process.env.AD_TYPE.charAt(0).toUpperCase() + process.env.AD_TYPE.slice(1)}: ${cnt}`;
             }
             const info = await transporter.sendMail({
                 from: process.env.GMAIL_USER,

@@ -36,18 +36,18 @@ Apify.main(async () => {
                 continue;
             }
             if ('CONTAINS' in process.env) {
-                const re = new RegExp(process.env, "ig");
-                if (entry.title.match(re) != null ||
-                        ('location' in entry && entry.location.match(re) != null) ||
-                        ('detail' in entry && entry.detail.match(re) != null)) {
-                    console.log(`Found match entry: ${entry.id}`);
+                const re = new RegExp(process.env.CONTAINS, "ig");
+                if (entry.title.match(re) !== null ||
+                        ('location' in entry && entry.location.match(re) !== null) ||
+                        ('detail' in entry && entry.detail.match(re) !== null)) {
+                    console.log(`Found match entry with CONTAINS: ${entry.id}`);
                 } else {
                     continue;
                 }
             }
             if ('SECTOR' in process.env) {
                 if ('sector' in entry && entry.sector == parseInt(process.env.SECTOR)) {
-                    console.log(`Found match entry: ${entry.id}`);
+                    console.log(`Found match entry with SECTOR: ${entry.id}`);
                 } else {
                     continue;
                 }
@@ -55,7 +55,7 @@ Apify.main(async () => {
             if ('AD_TYPE' in process.env) {
                 if ((process.env.AD_TYPE == 'executare' && entry.executare) ||
                         (process.env.AD_TYPE == 'vanzare' && !entry.executare)) {
-                    console.log(`Found match entry: ${entry.id}`);
+                    console.log(`Found match entry with AD_TYPE: ${entry.id}`);
                 } else {
                     continue;
                 }

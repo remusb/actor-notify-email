@@ -72,7 +72,7 @@ Apify.main(async () => {
                 if (process.env.NOTIFY_TYPE == 'terenuri') {
                     vanzareOut += `<tr><td>${entry.title}, ${entry.size} mp</td><td>${entry.price} EUR</td><td>${entry.detail}</td>`;
                 } else {
-                    vanzareOut += `<tr><td>${entry.title}</td><td>${entry.house}, ${entry.size}, ${entry.rooms} cam.</td><td>${entry.price} EUR</td><td>${entry.detail}</td>`;
+                    vanzareOut += `<tr><td>${entry.title}</td><td>${entry.house}, ${entry.size}, ${entry.rooms} cam., ${entry.year}</td><td>${entry.price} EUR</td><td>${entry.detail}</td>`;
                 }
                 vanzareOut += `<td><a href="${entry.url}" target="_blank">Link</a></td></tr>`;
             }
@@ -84,7 +84,7 @@ Apify.main(async () => {
                 htmlOut += '<h1>Vanzari</h1>' + '<table><thead><tr><th>Titlu/Supr.</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + vanzareOut + '</table>';
                 htmlOut += '<h1>Executari</h1>' + '<table><thead><tr><th>Titlu/Supr.</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + executariOut + '</table>';
             } else {
-                htmlOut += '<h1>Vanzari</h1>' + '<table><thead><tr><th>Titlu</th><th>Supr/Cam</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + vanzareOut + '</table>';
+                htmlOut += '<h1>Vanzari</h1>' + '<table><thead><tr><th>Titlu</th><th>Supr/Cam/An</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + vanzareOut + '</table>';
             }
             htmlOut += '</body></html>';
 

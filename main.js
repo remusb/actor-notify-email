@@ -7,7 +7,16 @@ Apify.main(async () => {
     const htmlOutTemplate = fs.readFileSync('/template/email.html', 'utf8');
     let cnt = 0;
 
-    const store = await Apify.openKeyValueStore(process.env.NOTIFY_TYPE);
+    let adType = 'terenuri';
+    if ('NOTIFY_TYPE' in process.env) {
+        adType = process.env.NOTIFY_TYPE;
+    }
+    let saleType = 'vanzare';
+    if ('SALE_TYPE' in process.env) {
+        saleType = process.env.SALE_TYPE;
+    }
+    const store = await Apify.openKeyValueStore(adType);
+    let domainCount = {};
 
     if (store != null) {
         let htmlOut = htmlOutTemplate;
@@ -27,6 +36,11 @@ Apify.main(async () => {
             if (('notified' in entry) && entry.notified && process.env.INCLUDE_NOTIFIED != "1") {
                 continue;
             }
+            if ((saleType == 'executare' && !entry.executare) ||
+                    (saleType == 'vanzare' && entry.executare)) {
+                continue;
+            }
+
             if (!('title' in entry)) {
                 console.log(`Ignoring entry: ${JSON.stringify(entry)}`);
                 if (process.env.DELETE_INVALID == "1") {
@@ -51,25 +65,25 @@ Apify.main(async () => {
                     continue;
                 }
             }
-            if ('AD_TYPE' in process.env) {
-                if ((process.env.AD_TYPE == 'executare' && entry.executare) ||
-                        (process.env.AD_TYPE == 'vanzare' && !entry.executare)) {
-                    console.log(`Found match entry with AD_TYPE: ${entry.id}`);
-                } else {
-                    continue;
-                }
-            }
 
             if (process.env.INCLUDE_NOTIFIED != "1") {
                 entry.notified = true;
                 await store.setValue(key, entry);
             }
 
+            if ('domain' in entry) {
+                if (entry.domain in domainCount) {
+                    domainCount[entry.domain]++;
+                } else {
+                    domainCount[entry.domain] = 1;
+                }
+            }
+
             if (entry.executare) {
                 executariOut += `<tr><td>${entry.title}, ${entry.size} mp</td><td>${entry.price} EUR</td><td>${entry.detail}</td>`;
                 executariOut += `<td><a href="${entry.url}" target="_blank">Link</a></td></tr>`;
             } else {
-                if (process.env.NOTIFY_TYPE == 'terenuri') {
+                if (adType == 'terenuri') {
                     vanzareOut += `<tr><td>${entry.title}, ${entry.size} mp</td><td>${entry.price} EUR</td><td>${entry.detail}</td>`;
                 } else {
                     vanzareOut += `<tr><td>${entry.title}</td><td>${entry.house}, ${entry.size}, ${entry.rooms} cam., ${entry.year}</td><td>${entry.price} EUR</td><td>${entry.detail}</td>`;
@@ -80,11 +94,21 @@ Apify.main(async () => {
         }
 
         if (executariOut != '' || vanzareOut != '') {
-            if (process.env.NOTIFY_TYPE == 'terenuri') {
-                htmlOut += '<h1>Vanzari</h1>' + '<table><thead><tr><th>Titlu/Supr.</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + vanzareOut + '</table>';
-                htmlOut += '<h1>Executari</h1>' + '<table><thead><tr><th>Titlu/Supr.</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + executariOut + '</table>';
+            htmlOut += '<ul>'
+            for (const [key, value] of Object.entries(domainCount)) {
+                htmlOut += `<li>${key}: ${value}</li>`;
+            }
+            htmlOut += '</ul>'
+
+            if (adType == 'terenuri') {
+                if (executariOut != '') {
+                    htmlOut += '<table><thead><tr><th>Titlu/Supr.</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + executariOut + '</table>';
+                }
+                if (vanzareOut != '') {
+                    htmlOut += '<table><thead><tr><th>Titlu/Supr.</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + vanzareOut + '</table>';
+                }
             } else {
-                htmlOut += '<h1>Vanzari</h1>' + '<table><thead><tr><th>Titlu</th><th>Supr/Cam/An</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + vanzareOut + '</table>';
+                htmlOut += '<table><thead><tr><th>Titlu</th><th>Supr/Cam/An</th><th>Pret</th><th>Detalii</th><th>URL</th></thead>' + vanzareOut + '</table>';
             }
             htmlOut += '</body></html>';
 
@@ -99,15 +123,14 @@ Apify.main(async () => {
                     pass: process.env.GMAIL_PASSWORD
                 }
             });
-            let emailTitle = `Status ${process.env.NOTIFY_TYPE}: ${cnt}`;
+            const niceType = adType.charAt(0).toUpperCase() + adType.slice(1);
+            const niceSaleType = saleType.charAt(0).toUpperCase() + saleType.slice(1);
+            let emailTitle = `Status ${niceSaleType} ${niceType}`;
             if ('CONTAINS' in process.env) {
-                emailTitle = `Status ${process.env.NOTIFY_TYPE} / ${process.env.CONTAINS}: ${cnt}`;
+                emailTitle = `Status ${niceSaleType} ${niceType} / ${process.env.CONTAINS}`;
             }
             if ('SECTOR' in process.env) {
-                emailTitle = `Status ${process.env.NOTIFY_TYPE} / Sector ${process.env.SECTOR}: ${cnt}`;
-            }
-            if ('AD_TYPE' in process.env) {
-                emailTitle = `Status ${process.env.NOTIFY_TYPE} / ${process.env.AD_TYPE.charAt(0).toUpperCase() + process.env.AD_TYPE.slice(1)}: ${cnt}`;
+                emailTitle = `Status ${niceSaleType} ${niceType} / Sector ${process.env.SECTOR}`;
             }
             const info = await transporter.sendMail({
                 from: process.env.GMAIL_USER,
